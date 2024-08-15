@@ -1,0 +1,246 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input, button {
+            margin: 5px 0;
+        }
+        #bookList, #memberList {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Library Management System</h1>
+
+    <h2>Add Book</h2>
+    <form id="addBookForm">
+        <input type="text" id="bookTitle" placeholder="Title" required>
+        <input type="text" id="bookAuthor" placeholder="Author" required>
+        <input type="text" id="bookISBN" placeholder="ISBN" required>
+        <input type="number" id="bookQuantity" placeholder="Quantity" required>
+        <button type="submit">Add Book</button>
+    </form>
+
+    <h2>Add Member</h2>
+    <form id="addMemberForm">
+        <input type="text" id="memberName" placeholder="Name" required>
+        <input type="email" id="memberEmail" placeholder="Email" required>
+        <button type="submit">Add Member</button>
+    </form>
+
+    <h2>Issue Book</h2>
+    <form id="issueBookForm">
+        <input type="number" id="issueBookId" placeholder="Book ID" required>
+        <input type="number" id="issueMemberId" placeholder="Member ID" required>
+        <button type="submit">Issue Book</button>
+    </form>
+
+    <h2>Return Book</h2>
+    <form id="returnBookForm">
+        <input type="number" id="returnBookId" placeholder="Book ID" required>
+        <input type="number" id="returnMemberId" placeholder="Member ID" required>
+        <input type="number" id="returnFee" placeholder="Fee" required>
+        <button type="submit">Return Book</button>
+    </form>
+
+    <h2>Search Books</h2>
+    <form id="searchBooksForm">
+        <input type="text" id="searchQuery" placeholder="Search by title or author" required>
+        <button type="submit">Search</button>
+    </form>
+
+    <h2>Import Books</h2>
+    <form id="importBooksForm">
+        <input type="text" id="importTitle" placeholder="Title">
+        <input type="text" id="importAuthor" placeholder="Author">
+        <input type="number" id="importCount" placeholder="Number of books to import" required>
+        <button type="submit">Import Books</button>
+    </form>
+
+    <h2>Books</h2>
+    <div id="bookList"></div>
+
+    <h2>Members</h2>
+    <div id="memberList"></div>
+
+    <script>
+        function fetchBooks() {
+            fetch('/api/books')
+                .then(response => response.json())
+                .then(books => {
+                    const bookList = document.getElementById('bookList');
+                    bookList.innerHTML = books.map(book => `
+                        <p>ID: ${book.id}, Title: ${book.title}, Author: ${book.author}, ISBN: ${book.isbn}, Quantity: ${book.quantity}</p>
+                    `).join('');
+                });
+        }
+
+        function fetchMembers() {
+            fetch('/api/members')
+                .then(response => response.json())
+                .then(members => {
+                    const memberList = document.getElementById('memberList');
+                    memberList.innerHTML = members.map(member => `
+                        <p>ID: ${member.id}, Name: ${member.name}, Email: ${member.email}, Debt: ${member.debt}</p>
+                    `).join('');
+                });
+        }
+
+        document.getElementById('addBookForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                title: document.getElementById('bookTitle').value,
+                author: document.getElementById('bookAuthor').value,
+                isbn: document.getElementById('bookISBN').value,
+                quantity: parseInt(document.getElementById('bookQuantity').value)
+            };
+            fetch('/api/books', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                fetchBooks();
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('addMemberForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('memberName').value,
+                email: document.getElementById('memberEmail').value
+            };
+            fetch('/api/members', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                fetchMembers();
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('issueBookForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                book_id: parseInt(document.getElementById('issueBookId').value),
+                member_id: parseInt(document.getElementById('issueMemberId').value)
+            };
+            fetch('/api/issue_book', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                fetchBooks();
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('returnBookForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                book_id: parseInt(document.getElementById('returnBookId').value),
+                member_id: parseInt(document.getElementById('returnMemberId').value),
+                fee: parseFloat(document.getElementById('returnFee').value)
+            };
+            fetch('/api/return_book', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                fetchBooks();
+                fetchMembers();
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('searchBooksForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const query = document.getElementById('searchQuery').value;
+            fetch(`/api/search_books?query=${query}`)
+                .then(response => response.json())
+                .then(books => {
+                    const bookList = document.getElementById('bookList');
+                    bookList.innerHTML = books.map(book => `
+                        <p>ID: ${book.id}, Title: ${book.title}, Author: ${book.author}, ISBN: ${book.isbn}, Quantity: ${book.quantity}</p>
+                    `).join('');
+                });
+        });
+
+        document.getElementById('importBooksForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                title: document.getElementById('importTitle').value,
+                author: document.getElementById('importAuthor').value,
+                count: document.getElementById('importCount').value
+            };
+            fetch('/api/import_books', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                fetchBooks();
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        });
+
+    
+        fetchBooks();
+        fetchMembers();
+    </script>
+</body>
+</html>
